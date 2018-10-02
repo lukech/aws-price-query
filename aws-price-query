@@ -1,0 +1,63 @@
+#!/usr/bin/env python3
+#
+# A CLI utility to query the price of given AWS resource.
+#
+# User could specify resource type, AWS region, instance type etc. for the query.
+#
+# No AWS credential configuration is needed - we call GraphQL directly.
+#
+
+import os
+import sys
+import logging
+import docopt
+
+PROG_NAME = os.path.basename(sys.argv[0])
+DESCRIPTION = "AWS resource price query helper 0.1"
+USAGE = """
+AWS resource price query helper
+
+Usage:
+  prog_name ec2 [-r <region>] [-i <instance_type>]
+  prog_name s3 [-r <region>] [-i <instance_type>]
+  prog_name -h | --help
+  prog_name -V | --version
+
+Options:
+  -r REGION         AWS region the resource belongs to [default: 'us-east-1']
+  -i INSTANCE_TYPE  AWS EC2 instance type [default: 't2.medium']
+  -v                Enable verbose logging 
+  -h --help         Show this screen
+  -V --version      Show version of the script
+""".format(prog_name=PROG_NAME)
+
+DEFAULT_REGION = 'us-east-1'
+DEFAULT_INSTANCE_TYPE = 't2.medium'
+
+PRICE_INDEX_URL = 'https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/index.json'
+
+def aws_resource_query(resource, region, instance_t):
+    """ Query AWS resource price """
+
+    logging.info("resource: %s, region: %s, instance_type: %s" % 
+          (resource, region, instance_t)) 
+
+
+if __name__ == '__main__':
+
+    logging.basicConfig(level = logging.INFO)
+    args = docopt.docopt(USAGE, version = DESCRIPTION)
+    logging.info("\nargs: \n%s",  args)
+
+    resource = None
+    if args['ec2']: 
+        resource = 'ec2'
+    elif args['s3']:
+        resource = 's3'
+    else:
+        sys.exit("ERROR: resource '%s' has not been supported yet." % resource)
+
+    region = args.get('-r') 
+    instance_t = args.get('-i')
+
+    aws_resource_query(resource, region, instance_t)
